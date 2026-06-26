@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYNCHRONICITY - Portal</title>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-955SJFLNDH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-955SJFLNDH');
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap');
+        body { font-family: 'Noto Sans JP', sans-serif; background-color: #f6f8fa; }
+        .serif-font { font-family: 'Cinzel', serif; }
+        .fade-in { animation: fadeIn 0.8s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased min-h-screen flex flex-col relative">
+    <div class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-gray-200/50 to-transparent -z-10 pointer-events-none"></div>
+
+    <div id="root" class="flex-1 flex flex-col"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const AppCard = ({ title, desc, url, icon, colorClass, status, warning }) => (
+            <a href={url} className="block bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 group relative overflow-hidden flex flex-col">
+                <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorClass} opacity-10 rounded-bl-full transition-transform group-hover:scale-110`}></div>
+                
+                <div className="relative z-10 flex flex-col h-full">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="text-3xl">{icon}</div>
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-full">稼働中</span>
+                    </div>
+                    
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{title}</h3>
+                    <p className="text-xs text-gray-500 leading-relaxed flex-1">{desc}</p>
+                    
+                    {warning && (
+                        <div className="mt-3 text-[10px] font-bold text-rose-500 bg-rose-50 px-2 py-1.5 rounded-lg border border-rose-100 inline-flex items-center gap-1 w-fit">
+                            ⚠️ {warning}
+                        </div>
+                    )}
+                    
+                    <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-end text-xs font-bold text-gray-400 group-hover:text-gray-900 transition-colors">
+                        {title.includes('Study & Quiz') ? '学習を始める →' : '鑑定を始める →'}
+                    </div>
+                </div>
+            </a>
+        );
+
+        function App() {
+            const [stage, setStage] = useState('main'); 
+            
+            const [menuVisibility, setMenuVisibility] = useState(() => {
+                const saved = localStorage.getItem('sync_portal_menu_visibility');
+                if (saved) {
+                    try { return JSON.parse(saved); } catch(e) {}
+                }
+                return {
+                    shinsou: true,   
+                    tarot: true,     
+                    quiz: false,     
+                    palm: true,      
+                    sougou: false    
+                };
+            });
+
+            const pressTimer = useRef(null);
+
+            const handlePressStart = () => {
+                pressTimer.current = setTimeout(() => {
+                    setStage('admin');
+                }, 2000); 
+            };
+
+            const handlePressEnd = () => {
+                if (pressTimer.current) clearTimeout(pressTimer.current);
+            };
+
+            const handleToggle = (key) => {
+                const updated = { ...menuVisibility, [key]: !menuVisibility[key] };
+                setMenuVisibility(updated);
+                localStorage.setItem('sync_portal_menu_visibility', JSON.stringify(updated));
+            };
+
+            const allApps = [
+                {
+                    key: "shinsou",
+                    title: "SYNCHRONICITY 深層心理テスト",
+                    desc: "5つの極限テーマ（強度・カルマ・フェティシズム・サイコパス・悪人度）から、あなたの心の奥底に潜む本性を暴き出す心理テスト。",
+                    url: "https://piaf-jp.github.io/synchronicity_shinsoushinri_20260614_001/",
+                    icon: "👁️",
+                    colorClass: "from-pink-400 to-rose-600"
+                },
+                {
+                    key: "tarot",
+                    title: "Oracle of Tarot",
+                    desc: "フルデッキ78枚と多彩なスプレッドで、過去・現在・未来の隠されたメッセージを導き出すタロット鑑定。",
+                    url: "https://piaf-jp.github.io/Oracle_tarot_20260613_001/",
+                    icon: "🃏",
+                    colorClass: "from-indigo-400 to-purple-600"
+                },
+                {
+                    key: "quiz",
+                    title: "Tarot Study & Quiz",
+                    desc: "大アルカナ・小アルカナ全78枚のカードが持つ意味や象徴を、クイズ形式で楽しく学べる専用の学習アプリ。",
+                    url: "https://piaf-jp.github.io/tarot_quiz_20260621_001/",
+                    icon: "📚",
+                    colorClass: "from-blue-400 to-cyan-500"
+                },
+                {
+                    key: "palm",
+                    title: "Ultimate Hand Reading",
+                    desc: "両手の掌から先天的な宿命と後天的な運命をAIが極限まで深く読み解く手相鑑定。",
+                    url: "https://piaf-jp.github.io/piaf-jp-palm-reading_2026061302_001/",
+                    icon: "✋",
+                    colorClass: "from-amber-400 to-yellow-600",
+                    warning: "画像解析のためAPIリソース消費大"
+                },
+                {
+                    key: "sougou",
+                    title: "SYNCHRONICITY 総合診断",
+                    desc: "姓名判断、血液型、九星気学、四柱推命を掛け合わせた究極の深層心理・相性鑑定。",
+                    url: "https://piaf-jp.github.io/synchronicity_from_2026060702_001/",
+                    icon: "🔮",
+                    colorClass: "from-rose-400 to-orange-400",
+                    warning: "基本情報のインプットに手間がかかります"
+                }
+            ];
+
+            const visibleApps = allApps.filter(app => menuVisibility[app.key]);
+
+            return (
+                <div className="max-w-4xl mx-auto w-full px-4 py-12 md:py-20 fade-in pb-24 flex-1 flex flex-col justify-between">
+                    
+                    {stage === 'main' && (
+                        <div className="space-y-16 flex-1 w-full">
+                            <header className="text-center space-y-4">
+                                <div className="inline-flex items-center justify-center p-3 bg-white rounded-full shadow-sm border border-gray-100 mb-2">
+                                    <span className="text-2xl">🌌</span>
+                                </div>
+                                <h1 className="serif-font text-3xl md:text-5xl font-black tracking-widest text-gray-900">
+                                    SYNCHRONICITY
+                                </h1>
+                                <p className="text-sm font-bold text-gray-500 tracking-widest uppercase">
+                                    AI Fortune Telling Portal
+                                </p>
+                            </header>
+
+                            {visibleApps.length === 0 ? (
+                                <p className="text-xs text-gray-400 text-center py-12 font-bold">
+                                    表示可能なメニューがありません。<br/>右下の隠しボタンから表示設定を行ってください。
+                                </p>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {visibleApps.map((app) => (
+                                        <AppCard key={app.key} {...app} />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {stage === 'admin' && (
+                        <div className="fade-in space-y-5 bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-md max-w-xl mx-auto w-full my-auto">
+                            <div className="border-b border-gray-100 pb-3 flex justify-between items-center">
+                                <h2 className="text-sm font-black tracking-wider text-gray-800 flex items-center gap-1.5">
+                                    ⚙️ SYSTEM MASTER PANEL
+                                </h2>
+                                <button onClick={() => setStage('main')} className="text-xs font-bold text-gray-500 hover:text-gray-900 bg-gray-100 px-3 py-1.5 rounded-lg transition-colors">
+                                    閉じる
+                                </button>
+                            </div>
+
+                            <div className="space-y-3 pt-2">
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-bold text-gray-600">ポータル表示メニューのコントロール</span>
+                                    <span className="text-[10px] text-gray-400 mt-0.5">有効（チェックあり）にしたメニューのみがメイン画面に配置されます。</span>
+                                </div>
+                                
+                                <div className="space-y-2.5 pt-2">
+                                    {allApps.map((app) => (
+                                        <label key={app.key} className="flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100/70 rounded-xl border border-gray-100 shadow-sm cursor-pointer transition-colors group">
+                                            <div className="flex items-center space-x-3 max-w-[85%]">
+                                                <span className="text-2xl flex-shrink-0">{app.icon}</span>
+                                                <div className="flex flex-col overflow-hidden">
+                                                    <span className="text-xs font-bold text-gray-800 group-hover:text-gray-900">{app.title}</span>
+                                                    <span className="text-[10px] text-gray-400 truncate mt-0.5">{app.desc}</span>
+                                                </div>
+                                            </div>
+                                            <input 
+                                                type="checkbox" 
+                                                checked={menuVisibility[app.key]} 
+                                                onChange={() => handleToggle(app.key)}
+                                                className="w-5 h-5 accent-gray-900 cursor-pointer rounded transition-all transform active:scale-95" 
+                                            />
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {stage === 'main' && (
+                        <footer className="mt-20 text-center text-xs text-gray-400 font-bold">
+                            <p>&copy; {new Date().getFullYear()} SYNCHRONICITY Project. All paths lead to truth.</p>
+                        </footer>
+                    )}
+
+                    {/* ▼ 色を濃く見やすく調整したマスターパネル起動ボタン ▼ */}
+                    <div className="fixed bottom-4 right-4 h-12 w-12 bg-transparent pointer-events-none z-50">
+                        <div 
+                            onMouseDown={handlePressStart}
+                            onMouseUp={handlePressEnd}
+                            onTouchStart={handlePressStart}
+                            onTouchEnd={handlePressEnd}
+                            onMouseLeave={handlePressEnd}
+                            className="w-12 h-12 bg-gray-200/40 border border-gray-300/50 rounded-full flex items-center justify-center cursor-pointer select-none pointer-events-auto active:bg-gray-300 transition-all shadow-sm"
+                            title="マスターパネルを開く（2秒長押し）"
+                        >
+                            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                        </div>
+                    </div>
+
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
